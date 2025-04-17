@@ -76,7 +76,17 @@
 				$result = Invoke-RestMethod -Uri $apiUrl -Method $Method -Headers $headers -Body $Body -TimeoutSec $TimeoutSec
 				# exit loop after successful execution
 				break
-			} 
+			}
+			catch [System.Management.Automation.ErrorRecord] {
+				if ($_ -eq "Invalid Token") {
+					if ($script:dbAuthenticationProvider -eq "DatabricksAwsOauth") {
+						Set-DatabricksEnvironment -AccountID $script:dbOAUTHAccountID -ClientID $script:dbOAUTHClientID -ClientSecret $script:dbOAUTHClientSecret -ApiRootUrl $script:dbOAUTHApiRootUrl
+					}	
+				}
+				else {
+					throw $_
+				}
+			}
 			catch {
 				$retry += 1
 				if ($retry -le $script:dbApiCallRetryCount) {
@@ -93,7 +103,18 @@
 		while ($retry -le $script:dbApiCallRetryCount)
 	}
 	else {
-		$result = Invoke-RestMethod -Uri $apiUrl -Method $Method -Headers $headers -Body $Body -TimeoutSec $TimeoutSec
+		try {
+			$result = Invoke-RestMethod -Uri $apiUrl -Method $Method -Headers $headers -Body $Body -TimeoutSec $TimeoutSec
+		} catch [System.Management.Automation.ErrorRecord] {
+			if ($_ -eq "Invalid Token") {
+				if ($script:dbAuthenticationProvider -eq "DatabricksAwsOauth") {
+					Set-DatabricksEnvironment -AccountID $script:dbOAUTHAccountID -ClientID $script:dbOAUTHClientID -ClientSecret $script:dbOAUTHClientSecret -ApiRootUrl $script:dbOAUTHApiRootUrl
+				}
+			}
+			else {
+				throw $_
+			}
+		}
 	}	
 	
 	Write-Verbose "Response: $($result | ConvertTo-Json -Depth 10)"
@@ -114,14 +135,20 @@ Function Set-DatabricksEnvironment {
 		The URL of the API. 
 		For Azure, this could be 'https://westeurope.azuredatabricks.net'
 		For AWS, this could be 'https://abc-12345-xaz.cloud.databricks.com'
+		For AWS Accounts API, this could be 'https://accounts.cloud.databricks.com'
 		.PARAMETER CloudProvider
 		The CloudProvider where the Databricks workspace is hosted. Can either be 'Azure' or 'AWS'.
 		If not provided, it is derived from the ApiRootUrl parameter and/or the type of authentication
 		.PARAMETER Credential
 		The Powershell credential to use when using AAD authentication.
+		.PARAMETER AccountID
+		The Account ID for OAUTH to obtain a token for account-level authentication and tokens.
 		.PARAMETER ClientID
+		The OAUTH Client ID for Databricks to obtain a token. This can be used at the account level or workspace level, however, you cannot use the Account-level client_id to authenticate to a workspace, but you can use the account-level token to run api's in all workspaces in the account.
 		The ID of the Azure Active Directory (AAD) application that was deployed to use AAD authentication with Databricks.
-		If used in combination with -ServicePrincipal this value is ignored and is overwritten using the Usernamen from -Credential.
+		If used in combination with -ServicePrincipal this value is ignored and is overwritten using the Username from -Credential.
+		.PARAMETER ClientSecret
+		The OAUTH Client Secret for Databricks to obtain a token.
 		.PARAMETER TenantID
 		The ID of the Azure Active Directory (AAD). (optional)
 		.PARAMETER AzureResourceID
@@ -172,26 +199,32 @@ Function Set-DatabricksEnvironment {
 	param
 	(
 		[Parameter(ParameterSetName = "DatabricksApi", Mandatory = $true, Position = 1)]
+		[Parameter(ParameterSetName = "DatabricksAwsOauth", Mandatory = $true, Position = 1)]
 		[Parameter(ParameterSetName = "AADAuthenticationResourceID", Mandatory = $true, Position = 1)]
 		[Parameter(ParameterSetName = "AADAuthenticationOrgID", Mandatory = $true, Position = 1)]
 		[Parameter(ParameterSetName = "AADAuthenticationResourceDetails", Mandatory = $true, Position = 1)]
 		[Parameter(ParameterSetName = "AADAuthenticationAzureDevOpsServiceConnection", Mandatory = $true)] [string] [Alias("CustomApiRootUrl")] $ApiRootUrl,
 		
 		[Parameter(ParameterSetName = "DatabricksApi", Mandatory = $true, Position = 1)] [string] $AccessToken,
-		
+
 		[Parameter(ParameterSetName = "DatabricksCLI", Mandatory = $true, Position = 1)] [switch] $UsingDatabricksCLIAuthentication,
-		
+
 		[Parameter(ParameterSetName = "AADAuthenticationResourceID", Mandatory = $true, Position = 1)]
 		[Parameter(ParameterSetName = "AADAuthenticationOrgID", Mandatory = $true, Position = 1)]
 		[Parameter(ParameterSetName = "AADAuthenticationResourceDetails", Mandatory = $true, Position = 1)][PSCredential] $Credential,
-
+		
 		[Parameter(ParameterSetName = "AADAuthenticationAzureDevOpsServiceConnection", Mandatory = $true)] [switch] $UsingAzureDevOpsServiceConnection,
 
 		[Parameter(ParameterSetName = "AADAuthenticationAzContext", Mandatory = $true)] [switch] $UsingAzContext,
 		
+		[Parameter(ParameterSetName = "DatabricksAwsOauth", Mandatory = $true, Position = 2)]
 		[Parameter(ParameterSetName = "AADAuthenticationResourceID", Mandatory = $true, Position = 2)]
 		[Parameter(ParameterSetName = "AADAuthenticationOrgID", Mandatory = $true, Position = 2)]
 		[Parameter(ParameterSetName = "AADAuthenticationResourceDetails", Mandatory = $true, Position = 2)][string] $ClientID,
+
+		[Parameter(ParameterSetName = "DatabricksAwsOauth", Mandatory = $true, Position = 3)] [string] $ClientSecret,
+
+		[Parameter(ParameterSetName = "DatabricksAwsOauth", Mandatory = $false, Position = 4)] [string] $AccountID,
 		
 		[Parameter(ParameterSetName = "AADAuthenticationResourceID", Mandatory = $true, Position = 4)]
 		[Parameter(ParameterSetName = "AADAuthenticationOrgID", Mandatory = $true, Position = 4)]
@@ -205,7 +238,7 @@ Function Set-DatabricksEnvironment {
 		[Parameter(ParameterSetName = "AADAuthenticationResourceDetails", Mandatory = $true, Position = 3)] [string] $SubscriptionID,
 		[Parameter(ParameterSetName = "AADAuthenticationResourceDetails", Mandatory = $true, Position = 5)] [string] $ResourceGroupName,
 		[Parameter(ParameterSetName = "AADAuthenticationResourceDetails", Mandatory = $true, Position = 6)] [string] $WorkspaceName,
-		
+
 		[Parameter(ParameterSetName = "AADAuthenticationResourceID", Mandatory = $false, Position = 7)]
 		[Parameter(ParameterSetName = "AADAuthenticationOrgID", Mandatory = $false, Position = 7)]
 		[Parameter(ParameterSetName = "AADAuthenticationResourceDetails", Mandatory = $false, Position = 7)] [switch] $ServicePrincipal,
@@ -260,6 +293,8 @@ Function Set-DatabricksEnvironment {
 		#endregion
 
 		$script:dbAuthenticationHeader = @{}
+
+		[ApiTypes]$script:dbApiType = [ApiTypes]::WORKSPACE
 
 		#region check ApiRootUrl
 		if ($PSCmdlet.ParameterSetName -eq "DatabricksCLI") {
@@ -323,6 +358,43 @@ Function Set-DatabricksEnvironment {
 			$script:dbApiRootUrl = $ApiRootUrl.Trim('/') + "/api"
 			
 			$script:dbAuthenticationHeader["Authorization"] = "Bearer $AccessToken"
+		}
+		#endregion
+		#region Databricks OAUTH
+		elseif ($PSCmdlet.ParameterSetName -eq "DatabricksAwsOauth") {
+			Write-Verbose "Using Databricks AWS OAUTH authentication ..."
+			$script:dbAuthenticationProvider = "DatabricksAwsOauth"
+			$script:dbOAUTHApiRootUrl = $ApiRootUrl
+			$script:dbOAUTHAccountID = $AccountID
+			$script:dbOAUTHClientID = $ClientID
+			$script:dbOAUTHClientSecret = $ClientSecret
+			if ($ApiRootUrl.split('.')[0].ToLower() -eq 'https://accounts') {
+				if ([string]::IsNullOrWhiteSpace($AccountID)) {
+					throw("AccountID cannot be blank when using the Account Endpoint.")
+				}
+				else {
+					$tokenEndpoint = "$ApiRootUrl/oidc/accounts/$AccountID/v1/token"
+					Write-Verbose "Using ACCOUNT API endpoint..."
+					$script:dbApiType = [ApiTypes]::ACCOUNT
+				}
+			}
+			else {
+				$tokenEndpoint = "$ApiRootUrl/oidc/v1/token"
+				Write-Verbose "Using WORKSPACE API endpoint..."
+				$script:dbApiType = [ApiTypes]::WORKSPACE
+			}			
+			# Construct the request body
+			$body = "grant_type=client_credentials&scope=all-apis"	
+			$base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f $ClientID,$ClientSecret)))
+			try {
+				$response = Invoke-WebRequest -Uri $tokenEndpoint -Method Post -Headers @{Authorization = ("Basic {0}" -f $base64AuthInfo)} -Body $body
+			}
+			catch {
+				Write-Error "Failed to obtain access token: $($_.Exception.Message)"
+				exit 1
+			}
+			$AccessToken = $($response.Content | ConvertFrom-Json).access_token
+			$script:dbAuthenticationHeader["Authorization"] = "Bearer $AccessToken"						
 		}
 		#endregion
 		#region AAD Authentication using Resource

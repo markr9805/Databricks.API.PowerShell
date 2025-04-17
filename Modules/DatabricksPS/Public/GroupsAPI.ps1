@@ -176,6 +176,11 @@ Function Get-DatabricksGroup {
   }
 	
   process {
+    if ($script:dbApiType -ne [ApiTypes]::WORKSPACE) {
+      Write-Error -Message "WORKSPACE functions cannot be used when logged in with $dbApiType authentication."
+      return
+    }
+
     Write-Verbose "Building Body/Parameters for final API call ..."
     #Set parameters
     $parameters = @{ }

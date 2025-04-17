@@ -973,3 +973,8 @@ Function Get-DatabricksCloudProvider {
 	param ()
 	return $script:dbCloudProvider
 }
+
+enum ApiTypes {
+	WORKSPACE
+	ACCOUNT
+}
