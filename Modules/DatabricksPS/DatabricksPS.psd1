@@ -209,7 +209,22 @@
 'Get-UnityCatalogStorageCredential', 
 'Add-UnityCatalogStorageCredential', 
 'Update-UnityCatalogStorageCredential', 
-'Remove-UnityCatalogStorageCredential'
+'Remove-UnityCatalogStorageCredential',
+'Get-DatabricksAccountAssignableRole',
+'Get-DatabricksAccountRuleSet',
+'Update-DatabricksAccountRuleSet',
+'Get-DatabricksAccountGroup',
+'New-DatabricksAccountGroup',
+'Remove-DatabricksAccountGroup',
+'Get-DatabricksAccountServicePrincipal',
+'New-DatabricksAccountServicePrincipal',
+'Remove-DatabricksAccountServicePrincipal',
+'Get-DatabricksAccountUser',
+'New-DatabricksAccountUser',
+'Remove-DatabricksAccountUser',
+'Get-DatabricksAccountWorkspacePermission',
+'New-DatabricksAccountWorkspacePermission',
+'Remove-DatabricksAccountWorkspacePermission'
 )
 
 	# Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there is nothing to export.

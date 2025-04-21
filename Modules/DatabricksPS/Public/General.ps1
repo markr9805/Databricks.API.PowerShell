@@ -80,7 +80,7 @@
 			catch [System.Management.Automation.ErrorRecord] {
 				if ($_ -eq "Invalid Token") {
 					if ($script:dbAuthenticationProvider -eq "DatabricksAwsOauth") {
-						Set-DatabricksEnvironment -AccountID $script:dbOAUTHAccountID -ClientID $script:dbOAUTHClientID -ClientSecret $script:dbOAUTHClientSecret -ApiRootUrl $script:dbOAUTHApiRootUrl
+						Set-DatabricksEnvironment -AccountID $script:dbAccountID -ClientID $script:dbOAUTHClientID -ClientSecret $script:dbOAUTHClientSecret -ApiRootUrl $script:dbOAUTHApiRootUrl
 					}	
 				}
 				else {
@@ -108,7 +108,7 @@
 		} catch [System.Management.Automation.ErrorRecord] {
 			if ($_ -eq "Invalid Token") {
 				if ($script:dbAuthenticationProvider -eq "DatabricksAwsOauth") {
-					Set-DatabricksEnvironment -AccountID $script:dbOAUTHAccountID -ClientID $script:dbOAUTHClientID -ClientSecret $script:dbOAUTHClientSecret -ApiRootUrl $script:dbOAUTHApiRootUrl
+					Set-DatabricksEnvironment -AccountID $script:dbAccountID -ClientID $script:dbOAUTHClientID -ClientSecret $script:dbOAUTHClientSecret -ApiRootUrl $script:dbOAUTHApiRootUrl
 				}
 			}
 			else {
@@ -365,7 +365,7 @@ Function Set-DatabricksEnvironment {
 			Write-Verbose "Using Databricks AWS OAUTH authentication ..."
 			$script:dbAuthenticationProvider = "DatabricksAwsOauth"
 			$script:dbOAUTHApiRootUrl = $ApiRootUrl
-			$script:dbOAUTHAccountID = $AccountID
+			$script:dbAccountID = $AccountID
 			$script:dbOAUTHClientID = $ClientID
 			$script:dbOAUTHClientSecret = $ClientSecret
 			if ($ApiRootUrl.split('.')[0].ToLower() -eq 'https://accounts') {
