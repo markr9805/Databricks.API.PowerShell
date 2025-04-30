@@ -321,7 +321,7 @@ Function Add-DatabricksSCIMGroup {
       $entitlementValues = @($Entitlements | ForEach-Object { @{value = $_ } })
     }
 
-    $parameters | Add-Property -Name "schemas" -Value @("urn:ietf:params:scim:schemas:core:2.0:Group") -Force
+#    $parameters | Add-Property -Name "schemas" -Value @("urn:ietf:params:scim:schemas:core:2.0:Group") -Force
     $parameters | Add-Property -Name "displayName" -Value $GroupName -Force
     $parameters | Add-Property -Name "members" -Value $groupMembers -Force
     $parameters | Add-Property -Name "entitlements" -Value $entitlementValues -Force

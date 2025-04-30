@@ -215,6 +215,7 @@
 'Update-DatabricksAccountRuleSet',
 'Get-DatabricksAccountGroup',
 'New-DatabricksAccountGroup',
+'Update-DatabricksAccountGroup',
 'Remove-DatabricksAccountGroup',
 'Get-DatabricksAccountServicePrincipal',
 'New-DatabricksAccountServicePrincipal',
@@ -224,7 +225,13 @@
 'Remove-DatabricksAccountUser',
 'Get-DatabricksAccountWorkspacePermission',
 'New-DatabricksAccountWorkspacePermission',
-'Remove-DatabricksAccountWorkspacePermission'
+'Remove-DatabricksAccountWorkspacePermission',
+'Get-UnityCatalogGrants',
+'Convert-OutputForCSV',
+'Get-UnityCatalogCredential',
+'Get-UnityCatalogConnection',
+'Get-UnityCatalogVolume',
+'Get-DatabricksCleanRoom'
 )
 
 	# Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there is nothing to export.

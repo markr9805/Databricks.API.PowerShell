@@ -16,7 +16,7 @@ Function Get-UnityCatalogSchema {
 	#>
 	param 
 	(	
-		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)] [Alias("catalog_name")] [string] $CatalogName,
+		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)] [Alias("catalog", "catalog_name")] [string] $CatalogName,
 		[Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)] [Alias("name", "schema_name")] [string] $SchemaName,
 		[Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)] [switch] $Raw
 	)

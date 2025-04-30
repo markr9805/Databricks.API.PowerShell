@@ -16,7 +16,7 @@ Function Get-UnityCatalogStorageCredential {
 	#>
 	param 
 	(	
-		[Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)] [Alias("name", "storage_credential_name")] [string] $StorageCredentialName,
+		[Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)] [Alias("name", "credential", "storage_credential_name")] [string] $StorageCredentialName,
 		[Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)] [switch] $Raw
 	)
 	begin {
